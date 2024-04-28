@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SecuredAuthApp.DTOs;
 using SecuredAuthApp.Models;
@@ -11,6 +12,7 @@ using System.Text;
 
 namespace SecuredAuthApp.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class AccountController : ControllerBase
@@ -27,6 +29,7 @@ namespace SecuredAuthApp.Controllers
         }
 
         //api/account/register
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<ActionResult<string>> Register(RegisterDto registerDto)
         {
@@ -63,6 +66,7 @@ namespace SecuredAuthApp.Controllers
                 Message = "Account Created Successfully !!"
             });
         }
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<ActionResult<AuthRespondDtos>> Login(LoginDto loginDto)
         {
@@ -128,7 +132,7 @@ namespace SecuredAuthApp.Controllers
         }
         //api/account/detail
         [Authorize]
-        [HttpGet("detail")]
+        [HttpGet("LoginUserDetail")]
         //implement get detail of current loggedin user
         public async Task<ActionResult<UserDetailDto>> GetUserDetail()
         {
@@ -152,6 +156,22 @@ namespace SecuredAuthApp.Controllers
                 PhoneNumberConfirmed=user.PhoneNumberConfirmed,
                 AccessFailedCount=user.AccessFailedCount,
             });
-        }   
+        }
+        [HttpGet("UserList")]
+        public async Task<ActionResult<IEnumerable<UserDetailDto>>> GetUsers()
+        {
+            var users= await _userManager.Users.Select(u=>new UserDetailDto
+            {
+                Id= u.Id,
+                Email=u.Email,
+                FullName=u.FullName,    
+                Roles=_userManager.GetRolesAsync(u).Result.ToArray(),
+                PhoneNumber=u.PhoneNumber,
+                PhoneNumberConfirmed=u.PhoneNumberConfirmed,
+                AccessFailedCount=u.AccessFailedCount,
+
+            }).ToListAsync();
+            return Ok(users);
+        }
     }
 }

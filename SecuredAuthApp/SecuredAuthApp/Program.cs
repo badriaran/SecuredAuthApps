@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SecuredAuthApp.Data;
+using SecuredAuthApp.IOC;
 using SecuredAuthApp.Models;
 using System.Text;
 
@@ -12,10 +13,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 var JWTSetting = builder.Configuration.GetSection("JWTSetting");
 
-// Add services to the container
-builder.Services.AddDbContext<AppDbContext>();
+builder.Services.AddInfrastructure();
 builder.Services.AddIdentity<AppUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
+
+builder.Services.AddDbContext<AppDbContext>();
 
 builder.Services.AddAuthentication(opt => {
     opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
